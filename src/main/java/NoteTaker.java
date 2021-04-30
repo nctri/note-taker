@@ -1,6 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class NoteTaker extends JFrame
 {
@@ -50,6 +52,7 @@ public class NoteTaker extends JFrame
       // adds vertical menus to it
       mBar = new JMenuBar();
       mBar.add(notesMenu);
+      mBar.add(viewMenu);
 
       // ADD THE viewMenu TO THE MENU BAR HERE
       setJMenuBar(mBar);
@@ -59,12 +62,12 @@ public class NoteTaker extends JFrame
       textPanel.setBackground(Color.blue);
       theText = new JTextArea(LINES, CHAR_PER_LINE);
       theText.setBackground(Color.white);
-
+      scrolledText = new JScrollPane(theText);
       // CREATE A JScrollPane OBJECT HERE CALLED
       // scrolledText AND PASS IN theText, THEN
       // CHANGE THE LINE BELOW BY PASSING IN scrolledText
 
-      textPanel.add(theText);
+      textPanel.add(scrolledText);
       contentPane.add(textPanel, BorderLayout.CENTER);
    }
 
@@ -110,7 +113,15 @@ public class NoteTaker extends JFrame
 
    public void createViews()
    {
+      viewMenu = new JMenu("Views");
 
+      createLookAndFeel();
+      lafMenu.addActionListener(new MenuListener());
+      viewMenu.add(lafMenu);
+
+      createScrollBars();
+      sbMenu.addActionListener(new MenuListener());
+      viewMenu.add(sbMenu);
    }
 
    /**
@@ -119,7 +130,20 @@ public class NoteTaker extends JFrame
 
    public void createLookAndFeel()
    {
+      lafMenu = new JMenu("Look and Feel");
+      JMenuItem item;
 
+      item = new JMenuItem("Metal");
+      item.addActionListener(new MenuListener());
+      lafMenu.add(item);
+
+      item = new JMenuItem("Motif");
+      item.addActionListener(new MenuListener());
+      lafMenu.add(item);
+
+      item = new JMenuItem("Windows");
+      item.addActionListener(new MenuListener());
+      lafMenu.add(item);
    }
 
    /**
@@ -128,7 +152,20 @@ public class NoteTaker extends JFrame
 
    public void createScrollBars()
    {
+      sbMenu = new JMenu("Scroll Bars");
+      JMenuItem item;
 
+      item = new JMenuItem("Never");
+      item.addActionListener(new MenuListener());
+      sbMenu.add(item);
+
+      item = new JMenuItem("Always");
+      item.addActionListener(new MenuListener());
+      sbMenu.add(item);
+
+      item = new JMenuItem("As Needed");
+      item.addActionListener(new MenuListener());
+      sbMenu.add(item);
    }
 
    /**
@@ -142,24 +179,75 @@ public class NoteTaker extends JFrame
       public void actionPerformed(ActionEvent e)
       {
          String actionCommand = e.getActionCommand();
-         if (actionCommand.equals("Save Note 1"))
-            note1 = theText.getText();
-         else if (actionCommand.equals("Save Note 2"))
-            note2 = theText.getText();
-         else if (actionCommand.equals("Clear"))
-            theText.setText("");
-         else if (actionCommand.equals("Open Note 1"))
-            theText.setText(note1);
-         else if (actionCommand.equals("Open Note 2"))
-            theText.setText(note2);
-         else if (actionCommand.equals("Exit"))
-            System.exit(0);
-        // ADD 6 BRANCHES TO THE ELSE-IF STRUCTURE
-        // TO ALLOW ACTION TO BE PERFORMED FOR EACH
-        // MENU ITEM YOU HAVE CREATED
-         else
-            theText.setText("Error in memo interface");
+         switch (actionCommand) {
+            case "Save Note 1":
+               note1 = theText.getText();
+               break;
+            case "Save Note 2":
+               note2 = theText.getText();
+               break;
+            case "Clear":
+               theText.setText("");
+               break;
+            case "Open Note 1":
+               theText.setText(note1);
+               break;
+            case "Open Note 2":
+               theText.setText(note2);
+            case "Metal":
+               setLookAndFeel(actionCommand);
+               break;
+            case "Motif":
+               setLookAndFeel(actionCommand);
+            case "Windows":
+               setLookAndFeel(actionCommand);
+               break;
+            case "Never":
+               setScrollBars(actionCommand);
+               break;
+            case "Always":
+               setScrollBars(actionCommand);
+               break;
+            case "As Needed":
+               setScrollBars(actionCommand);
+               break;
+            case "Exit":
+               System.exit(0);
+               // ADD 6 BRANCHES TO THE ELSE-IF STRUCTURE
+               // TO ALLOW ACTION TO BE PERFORMED FOR EACH
+               // MENU ITEM YOU HAVE CREATED
+            default:
+               theText.setText("Error in memo interface");
+               break;
+         }
       }
+   }
+
+   private void setScrollBars(String scrollBar) {
+      Map<String, Integer> policyFactory = new HashMap<>();
+      if ("As Needed".equals(scrollBar)) {
+         policyFactory.put(JScrollPane.HORIZONTAL_SCROLLBAR_POLICY, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+         policyFactory.put(JScrollPane.VERTICAL_SCROLLBAR_POLICY, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+      } else if ("Always".equals(scrollBar)) {
+         policyFactory.put(JScrollPane.HORIZONTAL_SCROLLBAR_POLICY, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+         policyFactory.put(JScrollPane.VERTICAL_SCROLLBAR_POLICY, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+      } else if ("Never".equals(scrollBar)) {
+         policyFactory.put(JScrollPane.HORIZONTAL_SCROLLBAR_POLICY, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+         policyFactory.put(JScrollPane.VERTICAL_SCROLLBAR_POLICY, JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+      }
+
+      scrolledText.setHorizontalScrollBarPolicy(policyFactory.get(JScrollPane.HORIZONTAL_SCROLLBAR_POLICY));
+      scrolledText.setVerticalScrollBarPolicy(policyFactory.get(JScrollPane.VERTICAL_SCROLLBAR_POLICY));
+   }
+
+   private void setLookAndFeel(String laf) {
+      try {
+         UIManager.setLookAndFeel(Util.getLookAndFeelClassName(laf));
+         SwingUtilities.updateComponentTreeUI(getContentPane());
+      } catch (Exception e) {
+         Util.showStackTraceDialog(e, "Unable to set look and feel");
+      }
+
    }
 
    /**
